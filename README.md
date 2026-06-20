@@ -42,14 +42,15 @@ curl http://localhost:8080/health
 
 ## 2. Required Supabase tables
 
-You already have `orders`, `order_items`, `vendor_profiles`, `menu_items`,
-and `notifications` from FreshDrop. Add one new table for the human-in-loop
-queue:
+You already have `orders`, `order_items`, `vendor_profiles`, `products`,
+`users`, and `notifications` from FreshDrop. Add one new table for the
+human-in-loop queue:
 
 ```sql
 create table agent_approvals (
   id uuid primary key default gen_random_uuid(),
   order_id uuid references orders(id),
+  buyer_id uuid references users(id),
   reason text not null,
   proposed_action jsonb not null,
   status text not null default 'pending', -- pending | approved | rejected
@@ -72,7 +73,7 @@ fires when an order's status changes to something like
 ```
 POST https://<your-alibaba-cloud-host>/webhook/order-exception
 Headers: x-webhook-secret: <WEBHOOK_SHARED_SECRET>
-Body: { "order_id": "...", "event_type": "item_unavailable" }
+Body: { "order_id": "...", "event_type": "item_unavailable", "product_id": "..." }
 ```
 
 ## 4. Deploying on Alibaba Cloud (required for submission)

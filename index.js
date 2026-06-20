@@ -21,13 +21,13 @@ app.post("/webhook/order-exception", async (req, res) => {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const { order_id, event_type } = req.body;
-  if (!order_id || !event_type) {
-    return res.status(400).json({ error: "order_id and event_type are required" });
+  const { order_id, event_type, product_id } = req.body;
+  if (!order_id || !event_type || !product_id) {
+    return res.status(400).json({ error: "order_id, event_type, and product_id are required" });
   }
 
   try {
-    const result = await runAgent({ order_id, event_type });
+    const result = await runAgent({ order_id, event_type, product_id });
     res.json(result);
   } catch (err) {
     console.error("Agent run failed:", err);
