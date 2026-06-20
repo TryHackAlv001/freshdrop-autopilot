@@ -1,0 +1,17 @@
+{
+  "name": "freshdrop-autopilot-agent",
+  "version": "0.1.0",
+  "description": "Order-exception autopilot agent for FreshDrop, reasoning via Qwen Cloud, deployed on Alibaba Cloud",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "openai": "^4.55.0",
+    "@supabase/supabase-js": "^2.45.0",
+    "dotenv": "^16.4.5"
+  }
+}
