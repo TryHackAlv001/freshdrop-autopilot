@@ -3,17 +3,17 @@
 // The reasoning loop. Qwen Cloud is exposed through an OpenAI-compatible
 // endpoint (Alibaba Cloud Model Studio / DashScope), so the standard
 // `openai` SDK works with just a base URL + key swap.
-
+ 
 import OpenAI from "openai";
 import * as tools from "./tools.js";
-
+ 
 const client = new OpenAI({
   apiKey: process.env.DASHSCOPE_API_KEY,
   baseURL: process.env.QWEN_BASE_URL || "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
 });
-
+ 
 const MODEL = process.env.QWEN_MODEL || "qwen-plus";
-
+ 
 // Tool schemas the model can choose to call. Names must match the
 // functions exported from tools.js exactly — the dispatch table below
 // relies on that. Param names match FreshDrop's real schema.
@@ -114,7 +114,7 @@ const TOOL_SCHEMAS = [
     },
   },
 ];
-
+ 
 const TOOL_DISPATCH = {
   getOrderContext: tools.getOrderContext,
   getVendorInventory: tools.getVendorInventory,
@@ -123,10 +123,14 @@ const TOOL_DISPATCH = {
   notifyCustomer: tools.notifyCustomer,
   createApprovalRequest: tools.createApprovalRequest,
 };
-
+ 
 const SYSTEM_PROMPT = `You are FreshDrop's order-exception agent. A vendor has just \
 marked a specific product unavailable on an active order. Your job:
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 672a700eb5f17bdfe81179bd865e7b492df52941
 1. Look up the full order context (order, line items, vendor, buyer, dispute history).
 2. Find the unavailable line item in order.order_items by product_id and note its \
 price_at_purchase.
@@ -141,10 +145,10 @@ order.payment_reference), notify the buyer with a clear title + body, and stop.
 create a human approval request explaining why, with your proposed action \
 included so a reviewer can approve it in one click. Do NOT take the action \
 yourself in this case.
-
+ 
 Always explain your reasoning briefly in your final message after tool calls \
 finish, so it's clear why you auto-resolved or escalated.`;
-
+ 
 /**
  * Runs the full reasoning loop for one order-exception event.
  * Returns the final assistant message plus a transcript of every tool
@@ -158,26 +162,26 @@ export async function runAgent({ order_id, event_type, product_id }) {
       content: `Order exception event: ${event_type}. Order ID: ${order_id}. Unavailable product ID: ${product_id}. Handle it.`,
     },
   ];
-
+ 
   const transcript = [];
   const MAX_TURNS = 8; // safety cap so a confused model can't loop forever
-
+ 
   for (let turn = 0; turn < MAX_TURNS; turn++) {
     const completion = await client.chat.completions.create({
       model: MODEL,
       messages,
       tools: TOOL_SCHEMAS,
     });
-
+ 
     const choice = completion.choices[0];
     messages.push(choice.message);
-
+ 
     const toolCalls = choice.message.tool_calls;
     if (!toolCalls || toolCalls.length === 0) {
       // Model is done — this is its final summary.
       return { final_message: choice.message.content, transcript };
     }
-
+ 
     for (const call of toolCalls) {
       const fn = TOOL_DISPATCH[call.function.name];
       let result;
@@ -187,9 +191,9 @@ export async function runAgent({ order_id, event_type, product_id }) {
         const args = JSON.parse(call.function.arguments || "{}");
         result = await fn(args);
       }
-
+ 
       transcript.push({ tool: call.function.name, args: call.function.arguments, result });
-
+ 
       messages.push({
         role: "tool",
         tool_call_id: call.id,
@@ -197,9 +201,14 @@ export async function runAgent({ order_id, event_type, product_id }) {
       });
     }
   }
-
+ 
   return {
     final_message: "Agent hit the turn limit without resolving — escalate manually.",
     transcript,
   };
+<<<<<<< HEAD
 }
+=======
+}
+ 
+>>>>>>> 672a700eb5f17bdfe81179bd865e7b492df52941
